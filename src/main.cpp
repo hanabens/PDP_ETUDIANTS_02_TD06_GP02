@@ -2,6 +2,16 @@
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
+#include "WiFiClientSecure.h"
+#include <PubSubClient.h>
+
+const char* wifi_ssid = "audrey";
+const char* wifi_password = "abcdefg1234";
+const char* mqtt_server = "27cc61dbaffc4da08cd0081cabd8cf01.s2.eu.hivemq.cloud";
+int mqtt_port = 8883;
+const char* mqtt_user = "ocres4ever";
+const char* mqtt_pass = "ocresse123";
+const char* client_id = "TD06_GP02";
 
 // Define the pins that we will use
 #define SENSOR 33
@@ -10,6 +20,21 @@
 
 DHT_Unified dht(SENSOR, DHTTYPE);
 
+WiFiClientSecure client;
+PubSubClient mqtt_client(client); 
+
+void connect_wifi() {
+  Serial.print("Connecting to WiFi");
+  WiFi.begin(wifi_ssid, wifi_password);
+  // attempt to connect to Wifi network:
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    // wait 2OOms for re-trying
+    delay(200);
+  }
+  Serial.println("\nConnected.");
+}
+
 void setup() {
   // Begin serial communication
   Serial.begin(9600);
@@ -17,9 +42,11 @@ void setup() {
 
   // Connect to WiFi
   // ...
+  connect_wifi();
   
   // Configure MQTT server
   // ...
+  mqtt_client.setServer(mqtt_server, mqtt_port);
 
   // Start listening to the DHT11
   dht.begin();
@@ -52,6 +79,7 @@ void setup() {
 
   // Send data to the broker with MQTT
   // ...
+  mqtt_client.connect(client_id,mqtt_user,mqtt_pass);
 
   Serial.println("Going to sleep for 5 seconds...");
   delay(100);
